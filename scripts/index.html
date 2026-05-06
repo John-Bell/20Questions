@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>20 Questions Engine</title>
+</head>
+<body>
+    <script>
+        window['ai_edge_gallery_get_result'] = async (data) => {
+            try {
+                // Parse the incoming JSON from the LLM
+                const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+
+                // Check if the LLM is calling the action we defined in SKILL.md
+                if (parsedData.action === "store_word") {
+                    
+                    // Save the word to the webview's local storage
+                    localStorage.setItem('twentyQuestionsSecret', parsedData.word);
+                    
+                    // Return a strong confirmation back to the LLM to anchor it
+                    return JSON.stringify({
+                        result: `SUCCESS. The secret word "${parsedData.word}" is securely locked in memory. Acknowledge the game has started, but DO NOT reveal the word to the user.`
+                    });
+                }
+
+                // A fallback catch just in case the LLM sends something unexpected
+                return JSON.stringify({
+                    result: "Action not recognized. Please continue the game."
+                });
+
+            } catch (e) {
+                // Return any script errors so the LLM doesn't get stuck waiting
+                return JSON.stringify({ error: e.message || e.toString() });
+            }
+        };
+    </script>
+</body>
+</html>
