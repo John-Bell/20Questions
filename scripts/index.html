@@ -11,19 +11,26 @@
                 // Parse the incoming JSON from the LLM
                 const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
 
-                // ACTION 1: Store the initial word
+                // ACTION 1: Store the initial word and reset the counter
                 if (parsedData.action === "store_word") {
                     localStorage.setItem('twentyQuestionsSecret', parsedData.word);
+                    localStorage.setItem('twentyQuestionsCount', '0'); // Reset counter
                     return JSON.stringify({
                         result: `SUCCESS. The secret word "${parsedData.word}" is securely locked in memory. Acknowledge the game has started, but DO NOT reveal the word to the user.`
                     });
                 }
 
-                // ACTION 2: Retrieve the word on every turn to prevent hallucinations
+                // ACTION 2: Retrieve the word AND increment the counter
                 if (parsedData.action === "retrieve_word") {
                     const savedWord = localStorage.getItem('twentyQuestionsSecret');
+                    
+                    // Get current count, increment it, and save it back
+                    let currentCount = parseInt(localStorage.getItem('twentyQuestionsCount') || '0', 10);
+                    currentCount += 1;
+                    localStorage.setItem('twentyQuestionsCount', currentCount.toString());
+
                     return JSON.stringify({
-                        result: `REMINDER: Your exact secret word is "${savedWord}". Answer the user's question based strictly on the factual properties of this whole object.`
+                        result: `REMINDER: Word is "${savedWord}". This is Question ${currentCount}/20. Answer based strictly on the word.`
                     });
                 }
 
