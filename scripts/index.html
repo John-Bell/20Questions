@@ -11,15 +11,19 @@
                 // Parse the incoming JSON from the LLM
                 const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
 
-                // Check if the LLM is calling the action we defined in SKILL.md
+                // ACTION 1: Store the initial word
                 if (parsedData.action === "store_word") {
-                    
-                    // Save the word to the webview's local storage
                     localStorage.setItem('twentyQuestionsSecret', parsedData.word);
-                    
-                    // Return a strong confirmation back to the LLM to anchor it
                     return JSON.stringify({
                         result: `SUCCESS. The secret word "${parsedData.word}" is securely locked in memory. Acknowledge the game has started, but DO NOT reveal the word to the user.`
+                    });
+                }
+
+                // ACTION 2: Retrieve the word on every turn to prevent hallucinations
+                if (parsedData.action === "retrieve_word") {
+                    const savedWord = localStorage.getItem('twentyQuestionsSecret');
+                    return JSON.stringify({
+                        result: `REMINDER: Your exact secret word is "${savedWord}". Answer the user's question based strictly on the factual properties of this whole object.`
                     });
                 }
 
@@ -29,7 +33,6 @@
                 });
 
             } catch (e) {
-                // Return any script errors so the LLM doesn't get stuck waiting
                 return JSON.stringify({ error: e.message || e.toString() });
             }
         };
